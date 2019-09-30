@@ -6,5 +6,5 @@ ansible 2.7
 
 ## Run 
 ```
-terraform apply
+terraform apply -var 'aws_profile=<your-aws-profile>' -var 'private_key_path=<path/to/your/aws/private-key.pem>'
 ```
