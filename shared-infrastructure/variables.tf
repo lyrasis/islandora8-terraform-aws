@@ -6,6 +6,11 @@ variable "aws_profile" {
   description = "name of the aws profile"
 }
 
+variable "aws_region" {
+  description = "The aws region"
+  default     = "us-east-1"
+}
+
 variable "ssh_user" {
   description = "default instance user: ubuntu"
   default     = "ubuntu"

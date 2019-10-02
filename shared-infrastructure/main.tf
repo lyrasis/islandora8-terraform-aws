@@ -1,6 +1,10 @@
+module "ansible" {
+  source="../modules/ansible" 
+}
+
 provider "aws" {
   profile    = "${var.aws_profile}"
-  region     = "us-east-1"
+  region     = "${var.aws_region}"
 }
 
 resource "aws_vpc" "islandora" {
@@ -95,22 +99,9 @@ resource "aws_instance" "web" {
 }
 
 resource "null_resource" "post_create" {
-  depends_on = [aws_instance.web, null_resource.setup]
+  depends_on = [aws_instance.web, module.ansible]
   provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False AWS_PROFILE=${var.aws_profile} ansible-playbook --limit 'tag_Islandora8_true:&tag_Shared_true' -i ec2.py --user ${var.ssh_user}  ${var.islandora8_playbooks_dir}/shared-resources-playbook.yml  --private-key ${var.private_key_path}"
   }
 } 
 
-resource "null_resource" "setup" {
-  provisioner "local-exec" {
-    command = "curl https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.py > ec2.py"
-  }
-
-  provisioner "local-exec" {
-    command = "chmod u+x ec2.py"
-  }
-
-  provisioner "local-exec" {
-    command = "curl https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/ec2.ini > ec2.ini"
-  }
-}
