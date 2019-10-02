@@ -13,5 +13,5 @@ variable "ssh_user" {
 
 variable "islandora8_playbooks_dir" {
   description = "path to the Islandora8 playbooks project directory"
-  default     = "../islandora8-playbooks"
+  default     = "../../islandora8-playbooks"
 }

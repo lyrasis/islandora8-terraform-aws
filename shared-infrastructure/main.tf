@@ -1,5 +1,5 @@
 provider "aws" {
-  profile    = "duracloud-danny"
+  profile    = "${var.aws_profile}"
   region     = "us-east-1"
 }
 
@@ -10,22 +10,22 @@ resource "aws_vpc" "islandora" {
   }
 }
 
-resource "aws_subnet" "subnet1" {
+resource "aws_subnet" "shared" {
  vpc_id      = aws_vpc.islandora.id
  cidr_block  = "10.0.0.0/24"
 }
 
-resource "aws_route_table" "subnet1rt" {
+resource "aws_route_table" "sharedrt" {
   vpc_id = aws_vpc.islandora.id
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = "${aws_subnet.subnet1.id}"
-  route_table_id = "${aws_route_table.subnet1rt.id}"
+  subnet_id      = "${aws_subnet.shared.id}"
+  route_table_id = "${aws_route_table.sharedrt.id}"
 }
 
 resource "aws_route" "route2igc" {
-  route_table_id            = "${aws_route_table.subnet1rt.id}"
+  route_table_id            = "${aws_route_table.sharedrt.id}"
   destination_cidr_block    = "0.0.0.0/0"
   gateway_id                = "${aws_internet_gateway.islandora_gateway.id}"
 }
@@ -34,7 +34,7 @@ resource "aws_internet_gateway" "islandora_gateway" {
   vpc_id     = aws_vpc.islandora.id
 }
 
-resource "aws_security_group" "subnet1" {
+resource "aws_security_group" "shared" {
   vpc_id = "${aws_vpc.islandora.id}"
 
   ingress {
@@ -71,8 +71,8 @@ resource "aws_eip_association" "eip_assoc" {
 resource "aws_instance" "web" {
   ami           = "ami-2757f631"
   instance_type = "t2.nano"
-  subnet_id     = aws_subnet.subnet1.id 
-  vpc_security_group_ids = ["${aws_security_group.subnet1.id}"] 
+  subnet_id     = aws_subnet.shared.id 
+  vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "duracloud-danny-keypair.pem"
   associate_public_ip_address = "true"
   tags = {

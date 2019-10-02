@@ -6,6 +6,7 @@ ansible 2.7
 
 ## Run 
 ```
+cd shared-infrastructure
 terraform init
 terraform apply -var 'aws_profile=<your-aws-profile>' -var 'private_key_path=<path/to/your/aws/private-key.pem>'
 ```
