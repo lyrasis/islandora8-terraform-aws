@@ -1,4 +1,2 @@
 .terraform
 terraform.tfstate*
-ec2.py
-ec2.ini

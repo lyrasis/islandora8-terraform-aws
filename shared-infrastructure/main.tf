@@ -1,5 +1,5 @@
-module "ansible" {
-  source="../modules/ansible" 
+module "local_setup" {
+  source="../modules/local-setup" 
 }
 
 provider "aws" {
@@ -9,6 +9,7 @@ provider "aws" {
 
 resource "aws_vpc" "islandora" {
  cidr_block  = "10.0.0.0/16"
+ enable_dns_hostnames =  true
  tags = {
     Name = "IslandoraVPC"
   }
@@ -21,6 +22,9 @@ resource "aws_subnet" "shared" {
 
 resource "aws_route_table" "sharedrt" {
   vpc_id = aws_vpc.islandora.id
+  tags = { 
+    Name = "IslandoraRouteTable"
+  }
 }
 
 resource "aws_route_table_association" "a" {
@@ -61,27 +65,24 @@ resource "aws_security_group" "shared" {
     protocol        = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = { 
+    Name   = "IslandoraSharedSecurityGroup"
+  }
 }
 
-resource "aws_eip" "ip" {
-    vpc = true
-}
-
-resource "aws_eip_association" "eip_assoc" {
-  instance_id   = "${aws_instance.web.id}"
-  allocation_id = "${aws_eip.ip.id}"
-}
-
-resource "aws_instance" "web" {
+resource "aws_instance" "microservices" {
   ami           = "ami-2757f631"
   instance_type = "t2.nano"
   subnet_id     = aws_subnet.shared.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
-  key_name  = "duracloud-danny-keypair.pem"
+  key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
     Islandora8 = "true"
     Shared     = "true"
+    Microservices = "true"
+    Name       = "Microservices"
   } 
   
 
@@ -99,9 +100,10 @@ resource "aws_instance" "web" {
 }
 
 resource "null_resource" "post_create" {
-  depends_on = [aws_instance.web, module.ansible]
+  depends_on = [module.local_setup, aws_instance.microservices, module.ansible]
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False AWS_PROFILE=${var.aws_profile} ansible-playbook --limit 'tag_Islandora8_true:&tag_Shared_true' -i ec2.py --user ${var.ssh_user}  ${var.islandora8_playbooks_dir}/shared-resources-playbook.yml  --private-key ${var.private_key_path}"
+    command = "EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit  ${aws_instance.microservices.public_ip} -i ../bin/ec2.py --user ${var.ssh_user}  ${var.islandora8_playbooks_dir}/shared-resources-playbook.yml  --private-key ${var.private_key_path}"
+
   }
 } 
 
