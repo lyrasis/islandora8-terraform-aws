@@ -18,6 +18,10 @@ resource "aws_vpc" "islandora" {
 resource "aws_subnet" "shared" {
  vpc_id      = aws_vpc.islandora.id
  cidr_block  = "10.0.0.0/24"
+
+ tags = { 
+    Name = "IslandoraSharedSubnet"
+  }
 }
 
 resource "aws_route_table" "sharedrt" {
@@ -54,10 +58,18 @@ resource "aws_security_group" "shared" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8080 
+    to_port     = 8080 
+    protocol    = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 22  
     to_port     = 22 
     protocol    = "tcp"
   }
+  
 
   egress {
     from_port       = 0
@@ -71,21 +83,18 @@ resource "aws_security_group" "shared" {
   }
 }
 
-resource "aws_instance" "microservices" {
-  ami           = "ami-2757f631"
-  instance_type = "t2.nano"
+resource "aws_instance" "fedora" {
+  ami           = "ami-04b9e92b5572fa0d1"
+  instance_type = "t2.small"
   subnet_id     = aws_subnet.shared.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    Islandora8 = "true"
-    Shared     = "true"
-    Microservices = "true"
-    Name       = "Microservices"
+    Name       = "SharedFedora"
+    role       = "fedora"
   } 
   
-
   
   provisioner "remote-exec" {
     inline = ["echo Hello World > remote-exec-test.txt"]
@@ -96,13 +105,12 @@ resource "aws_instance" "microservices" {
       private_key = "${file("${var.private_key_path}")}"
     }
   }
-  
 }
 
 resource "null_resource" "post_create" {
-  depends_on = [module.local_setup, aws_instance.microservices, module.ansible]
+  depends_on = [module.local_setup, aws_instance.fedora]
   provisioner "local-exec" {
-    command = "EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit  ${aws_instance.microservices.public_ip} -i ../bin/ec2.py --user ${var.ssh_user}  ${var.islandora8_playbooks_dir}/shared-resources-playbook.yml  --private-key ${var.private_key_path}"
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.fedora.public_ip} -i ../bin/ec2.py -i ${var.claw_playbook_dir}/inventory/prod --user ${var.ssh_user} ${var.claw_playbook_dir}/playbook.yml --private-key ${var.private_key_path}"
 
   }
 } 

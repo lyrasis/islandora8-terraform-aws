@@ -14,21 +14,10 @@ data "aws_vpc" "islandora" {
   }
 }
 
-resource "aws_subnet" "account" {
- vpc_id      = data.aws_vpc.islandora.id
- cidr_block  = "10.0.1.0/24"
-}
-
-data "aws_route_table" "sharedrt" {
-  vpc_id = data.aws_vpc.islandora.id
-  tags = {  
-    Name = "IslandoraRouteTable"
+data "aws_subnet" "account" {
+  tags = {
+   Name   = "IslandoraSharedSubnet"
   }
-}
-
-resource "aws_route_table_association" "a" {
-  subnet_id      = "${aws_subnet.account.id}"
-  route_table_id = "${data.aws_route_table.sharedrt.id}"
 }
 
 resource "aws_security_group" "islandora8_instance_sg" {
@@ -47,42 +36,41 @@ resource "aws_security_group" "islandora8_instance_sg" {
     to_port     = 8080 
     protocol    = "tcp"
   }
-  
+
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 3306 
     to_port     = 3306 
     protocol    = "tcp"
-  }
-
+  } 
+  
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 5432 
-    to_port     = 5432 
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
-  }
-
-
+  } 
+  
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8983 
-    to_port     = 8983 
+    from_port   = 8983
+    to_port     = 8983
     protocol    = "tcp"
-  }
-
+  } 
+  
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8161 
-    to_port     = 8161 
+    from_port   = 8161
+    to_port     = 8161
     protocol    = "tcp"
-  }
-
+  } 
+  
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8081 
-    to_port     = 8081 
+    from_port   = 8081
+    to_port     = 8081
     protocol    = "tcp"
-  }
+  } 
 
 
   ingress {
@@ -111,16 +99,13 @@ resource "aws_eip_association" "eip_assoc" {
 
 resource "aws_instance" "web" {
   ami           = "ami-04b9e92b5572fa0d1"
-  instance_type = "t2.large"
-  subnet_id     = aws_subnet.account.id 
+  instance_type = "t2.small"
+  subnet_id     = data.aws_subnet.account.id 
   vpc_security_group_ids = ["${aws_security_group.islandora8_instance_sg.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    Islandora8 = "true"
-    Instance   = "true"
-    database   = "true"
-    role       = "webserver,database,crayfish,karaf,tomcat,solr"
+    role       = "webserver,triplestore,database,karaf,solr,crayfish"
   } 
   
   provisioner "remote-exec" {
@@ -132,7 +117,6 @@ resource "aws_instance" "web" {
       private_key = "${file("${var.private_key_path}")}"
     }
   }
-  
 }
 
 resource "null_resource" "setup_instance" {

@@ -20,7 +20,7 @@ variable "ssh_user" {
   default     = "ubuntu"
 }
 
-variable "islandora8_playbooks_dir" {
-  description = "path to the Islandora8 playbooks project directory"
-  default     = "../../islandora8-playbooks"
+variable "claw_playbook_dir" {
+  description = "path to the claw-playbook project directory"
+  default     = "../../claw-playbook"
 }
