@@ -32,39 +32,10 @@ resource "aws_security_group" "islandora8_instance_sg" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 3306 
-    to_port     = 3306 
+    from_port   = 8080 
+    to_port     = 8080 
     protocol    = "tcp"
-  } 
-  
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-  } 
-  
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8983
-    to_port     = 8983
-    protocol    = "tcp"
-  } 
-  
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8161
-    to_port     = 8161
-    protocol    = "tcp"
-  } 
-  
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8081
-    to_port     = 8081
-    protocol    = "tcp"
-  } 
-
+  }
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -98,7 +69,8 @@ resource "aws_instance" "web" {
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    role       = "webserver,database,karaf,solr,crayfish"
+    Name       = "Islandora 8 Instance"
+    role       = "webserver,cantaloupe"
   } 
   
   provisioner "remote-exec" {

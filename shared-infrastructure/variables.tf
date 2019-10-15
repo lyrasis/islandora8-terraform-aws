@@ -24,3 +24,8 @@ variable "claw_playbook_dir" {
   description = "path to the claw-playbook project directory"
   default     = "../../claw-playbook"
 }
+
+variable "ami_id" { 
+  description = "the amazon machin image"
+  default     = "ami-04b9e92b5572fa0d1"
+}
