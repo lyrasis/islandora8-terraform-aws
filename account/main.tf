@@ -32,13 +32,6 @@ resource "aws_security_group" "islandora8_instance_sg" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8080 
-    to_port     = 8080 
-    protocol    = "tcp"
-  }
-
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 3306 
     to_port     = 3306 
     protocol    = "tcp"
@@ -105,7 +98,7 @@ resource "aws_instance" "web" {
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    role       = "webserver,triplestore,database,karaf,solr,crayfish"
+    role       = "webserver,database,karaf,solr,crayfish"
   } 
   
   provisioner "remote-exec" {

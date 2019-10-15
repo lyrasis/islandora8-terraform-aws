@@ -107,11 +107,43 @@ resource "aws_instance" "fedora" {
   }
 }
 
+resource "aws_instance" "triplestore" {
+  ami           = "ami-04b9e92b5572fa0d1"
+  instance_type = "t2.small"
+  subnet_id     = aws_subnet.shared.id 
+  vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
+  key_name  = "${var.aws_ec2_keypair}"
+  associate_public_ip_address = "true"
+  tags = { 
+    Name       = "SharedTripleStore"
+    role       = "triplestore"
+  }   
+  
+  
+  provisioner "remote-exec" {
+    inline = ["echo Hello World > remote-exec-test.txt"]
+    connection {
+      host        = "${self.public_ip}"
+      type        = "ssh"
+      user        = "${var.ssh_user}"
+      private_key = "${file("${var.private_key_path}")}"
+    }   
+  }
+}
+
 resource "null_resource" "post_create" {
   depends_on = [module.local_setup, aws_instance.fedora]
   provisioner "local-exec" {
     command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.fedora.public_ip} -i ../bin/ec2.py -i ${var.claw_playbook_dir}/inventory/prod --user ${var.ssh_user} ${var.claw_playbook_dir}/playbook.yml --private-key ${var.private_key_path}"
 
   }
-} 
+}
+
+resource "null_resource" "configure_triplestore" {
+  depends_on = [module.local_setup, aws_instance.triplestore]
+  provisioner "local-exec" {
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.triplestore.public_ip} -i ../bin/ec2.py -i ${var.claw_playbook_dir}/inventory/prod --user ${var.ssh_user} ${var.claw_playbook_dir}/playbook.yml --private-key ${var.private_key_path}"
+
+  }
+}
 
