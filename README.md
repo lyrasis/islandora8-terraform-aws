@@ -1,8 +1,11 @@
 # islandora8-terraform-aws
 
 ## Prerequisites
-terraform
-ansible 2.7
+* python3
+* awscli (`pip3 install awscli --upgrade`)
+* boto (`pip install boto`)
+* ansible 2.7 (`pip install  git+https://github.com/ansible/ansible.git@v2.7.12`) 
+* terraform v0.12+
 
 ## Run 
 ```

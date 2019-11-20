@@ -11,23 +11,32 @@ resource "aws_vpc" "islandora" {
  cidr_block  = "10.0.0.0/16"
  enable_dns_hostnames =  true
  tags = {
-    Name = "IslandoraVPC"
+    Name = "islandora_vpc"
   }
 }
 
-resource "aws_subnet" "shared" {
+resource "aws_subnet" "instances" {
  vpc_id      = aws_vpc.islandora.id
  cidr_block  = "10.0.0.0/24"
 
  tags = { 
-    Name = "IslandoraSharedSubnet"
+    Name = "islandora_instance_subnet"
+  }
+}
+
+resource "aws_subnet" "shared_resources" {
+ vpc_id      = aws_vpc.islandora.id
+ cidr_block  = "10.0.0.0/24"
+
+ tags = {
+    Name = "islandora_shared_resources_subnet"
   }
 }
 
 resource "aws_route_table" "sharedrt" {
   vpc_id = aws_vpc.islandora.id
   tags = { 
-    Name = "IslandoraRouteTable"
+    Name = "islandora_shared_route_table"
   }
 }
 
