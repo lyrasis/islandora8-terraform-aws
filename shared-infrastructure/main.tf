@@ -26,7 +26,7 @@ resource "aws_subnet" "instances" {
 
 resource "aws_subnet" "shared_resources" {
  vpc_id      = aws_vpc.islandora.id
- cidr_block  = "10.0.0.0/24"
+ cidr_block  = "10.0.1.0/24"
 
  tags = {
     Name = "islandora_shared_resources_subnet"
@@ -41,7 +41,7 @@ resource "aws_route_table" "sharedrt" {
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = "${aws_subnet.shared.id}"
+  subnet_id      = "${aws_subnet.shared_resources.id}"
   route_table_id = "${aws_route_table.sharedrt.id}"
 }
 
@@ -123,19 +123,19 @@ resource "aws_security_group" "shared" {
   }
 
   tags = { 
-    Name   = "IslandoraSharedSecurityGroup"
+    Name   = "islandora_shared_security_group"
   }
 }
 
 resource "aws_instance" "database" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    Name       = "SharedDatabase"
+    Name       = "shared_database"
     role       = "database"
   } 
   
@@ -154,12 +154,12 @@ resource "aws_instance" "database" {
 resource "aws_instance" "fedora" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = { 
-    Name       = "SharedFedora"
+    Name       = "shared_fedora"
     role       = "fedora"
   }   
   
@@ -178,12 +178,12 @@ resource "aws_instance" "fedora" {
 resource "aws_instance" "triplestore" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = { 
-    Name       = "SharedTripleStore"
+    Name       = "shared_triple_store"
     role       = "triplestore"
   }   
   
@@ -202,15 +202,14 @@ resource "aws_instance" "triplestore" {
 resource "aws_instance" "crayfish" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = { 
-    Name       = "SharedCrayfish"
+    Name       = "shared_crayfish"
     role       = "crayfish"
   }   
-  
   
   provisioner "remote-exec" {
     inline = ["echo Hello World > remote-exec-test.txt"]
@@ -226,12 +225,12 @@ resource "aws_instance" "crayfish" {
 resource "aws_instance" "karaf" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = { 
-    Name       = "Shared Karaf"
+    Name       = "shared_karaf"
     role       = "karaf"
   }   
   
@@ -250,12 +249,12 @@ resource "aws_instance" "karaf" {
 resource "aws_instance" "solr" {
   ami           = "${var.ami_id}"
   instance_type = "t2.small"
-  subnet_id     = aws_subnet.shared.id 
+  subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.shared.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = { 
-    Name       = "Shared Solr" 
+    Name       = "shared_solr" 
     role       = "solr"
   }   
   

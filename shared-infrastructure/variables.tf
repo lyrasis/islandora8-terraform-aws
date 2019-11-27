@@ -21,8 +21,8 @@ variable "ssh_user" {
 }
 
 variable "claw_playbook_dir" {
-  description = "path to the claw-playbook project directory"
-  default     = "../../claw-playbook"
+  description = "path to the islandora8-playbook project directory"
+  default     = "../../islandora8-playbook"
 }
 
 variable "ami_id" { 
