@@ -10,45 +10,24 @@ provider "aws" {
 data "aws_vpc" "islandora" {
 
   tags = {
-    Name   = "IslandoraVPC"
+    Name   = "islandora_vpc"
   }
 }
 
 data "aws_subnet" "account" {
   tags = {
-   Name   = "IslandoraSharedSubnet"
+   Name   = "islandora_instance_subnet"
   }
 }
 
-resource "aws_security_group" "islandora8_instance_sg" {
-  vpc_id = "${data.aws_vpc.islandora.id}"
+data "aws_db_instance" "database" {
+  db_instance_identifier = "islandora8-shared-db"
+}
 
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8000 
-    to_port     = 8000 
-    protocol    = "tcp"
-  }
+data "aws_security_group" "islandora_instance_sg" {
+  tags = {
+    Name = "islandora_instance_sg"
 
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 8080 
-    to_port     = 8080 
-    protocol    = "tcp"
-  }
-
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 22  
-    to_port     = 22 
-    protocol    = "tcp"
-  }
-
-  egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -65,11 +44,11 @@ resource "aws_instance" "web" {
   ami           = "ami-04b9e92b5572fa0d1"
   instance_type = "t2.small"
   subnet_id     = data.aws_subnet.account.id 
-  vpc_security_group_ids = ["${aws_security_group.islandora8_instance_sg.id}"] 
+  vpc_security_group_ids = ["${data.aws_security_group.islandora_instance_sg.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
-    Name       = "Islandora 8 Instance"
+    Name       = "islandora_instance"
     role       = "webserver,cantaloupe"
   } 
   
@@ -87,7 +66,7 @@ resource "aws_instance" "web" {
 resource "null_resource" "setup_instance" {
   depends_on = [module.local_setup, aws_eip_association.eip_assoc, aws_instance.web]
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_eip.ip.public_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_eip.ip.public_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod -e db_host=${data.aws_db_instance.database.address} --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
   }
 } 
 
