@@ -21,7 +21,7 @@ data "aws_subnet" "account" {
 }
 
 data "aws_db_instance" "database" {
-  db_instance_identifier = "terraform-20191202175244437100000003"
+  db_instance_identifier = "islandora8-shared-db"
 }
 
 data "aws_security_group" "islandora_instance_sg" {

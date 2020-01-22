@@ -90,6 +90,13 @@ resource "aws_security_group" "shared" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8000
+    to_port     = 8000 
+    protocol    = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 8983
     to_port     = 8983
     protocol    = "tcp"
@@ -111,6 +118,20 @@ resource "aws_security_group" "shared" {
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8101
+    to_port     = 8101
+    protocol    = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8161
+    to_port     = 8161
+    protocol    = "tcp"
+  } 
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
@@ -120,6 +141,20 @@ resource "aws_security_group" "shared" {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 22  
     to_port     = 22 
+    protocol    = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 61613 
+    to_port     = 61613
+    protocol    = "tcp"
+  }
+  
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 61616
+    to_port     = 61616
     protocol    = "tcp"
   }
   
@@ -196,6 +231,7 @@ resource "aws_security_group" "islandora_database" {
 }
 
 resource "aws_db_instance" "database" {
+  identifier           = "islandora8-shared-db"
   depends_on           = [aws_db_subnet_group.islandora_db_subnet_group]
   allocated_storage    = 20
   storage_type         = "gp2"
@@ -339,7 +375,6 @@ resource "null_resource" "configure_fedora" {
   depends_on = [module.local_setup, aws_instance.fedora, aws_db_instance.database]
   provisioner "local-exec" {
     command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.fedora.public_ip} -i ../bin/ec2.py -i ${var.claw_playbook_dir}/inventory/prod -e db_host=${aws_db_instance.database.address} --user ${var.ssh_user} ${var.claw_playbook_dir}/playbook.yml --private-key ${var.private_key_path}"
-
   }
 }
 
