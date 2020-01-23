@@ -371,6 +371,30 @@ resource "aws_instance" "solr" {
   }
 }
 
+resource "aws_instance" "cantaloupe" {
+  ami           = "${var.ami_id}"
+  instance_type = "t2.small"
+  subnet_id     = aws_subnet.shared_resources.id
+  vpc_security_group_ids = ["${aws_security_group.shared.id}"]
+  key_name  = "${var.aws_ec2_keypair}"
+  associate_public_ip_address = "true"
+  tags = {
+    Name       = "shared_cantaloupe"
+    role       = "cantaloupe"
+  }
+
+
+  provisioner "remote-exec" {
+    inline = ["echo Hello World > remote-exec-test.txt"]
+    connection {
+      host        = "${self.public_ip}"
+      type        = "ssh"
+      user        = "${var.ssh_user}"
+      private_key = "${file("${var.private_key_path}")}"
+    }
+  }
+}
+
 resource "null_resource" "configure_fedora" {
   depends_on = [module.local_setup, aws_instance.fedora, aws_db_instance.database]
   provisioner "local-exec" {
@@ -408,3 +432,9 @@ resource "null_resource" "configure_solr" {
   }
 }
 
+resource "null_resource" "configure_cantaloupe" {
+  depends_on = [module.local_setup, aws_instance.cantaloupe]
+  provisioner "local-exec" {
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.cantaloupe.public_ip} -i ../bin/ec2.py -i ${var.claw_playbook_dir}/inventory/prod --user ${var.ssh_user} ${var.claw_playbook_dir}/playbook.yml --private-key ${var.private_key_path}"
+  }
+}
