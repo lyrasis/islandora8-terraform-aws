@@ -49,7 +49,7 @@ resource "aws_instance" "web" {
   associate_public_ip_address = "true"
   tags = {
     Name       = "islandora_instance"
-    role       = "webserver,cantaloupe"
+    role       = "webserver"
   } 
   
   provisioner "remote-exec" {
