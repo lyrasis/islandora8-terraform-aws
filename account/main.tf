@@ -24,10 +24,22 @@ data "aws_db_instance" "database" {
   db_instance_identifier = "islandora8-shared-db"
 }
 
-data "aws_security_group" "islandora_instance_sg" {
-  tags = {
-    Name = "islandora_instance_sg"
+data "aws_instance" "bastion" {
+  filter {
+    name   = "tag:Name"
+    values = ["bastion"]
+  }
+}
 
+data "aws_security_group" "drupal" {
+  tags = {
+    Name = "drupal_sg"
+  }
+}
+
+data "aws_security_group" "ssh" {
+  tags = {
+    Name = "ssh_sg"
   }
 }
 
@@ -44,7 +56,7 @@ resource "aws_instance" "web" {
   ami           = "ami-04b9e92b5572fa0d1"
   instance_type = "t2.small"
   subnet_id     = data.aws_subnet.account.id 
-  vpc_security_group_ids = ["${data.aws_security_group.islandora_instance_sg.id}"] 
+  vpc_security_group_ids = ["${data.aws_security_group.drupal.id}", "${data.aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
   associate_public_ip_address = "true"
   tags = {
@@ -66,7 +78,7 @@ resource "aws_instance" "web" {
 resource "null_resource" "setup_instance" {
   depends_on = [module.local_setup, aws_eip_association.eip_assoc, aws_instance.web]
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_eip.ip.public_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod -e db_host=${data.aws_db_instance.database.address} --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.web.private_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod -e bastion_host=${data.aws_instance.bastion.public_ip} -e db_host=${data.aws_db_instance.database.address} --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
   }
 } 
 
