@@ -67,10 +67,11 @@ resource "aws_instance" "web" {
   provisioner "remote-exec" {
     inline = ["echo Hello World > remote-exec-test.txt"]
     connection {
-      host        = "${self.public_ip}"
+      host        = "${self.private_ip}"
       type        = "ssh"
       user        = "${var.ssh_user}"
       private_key = "${file("${var.private_key_path}")}"
+      bastion_host = "${data.aws_instance.bastion.public_ip}"
     }
   }
 }
@@ -78,7 +79,7 @@ resource "aws_instance" "web" {
 resource "null_resource" "setup_instance" {
   depends_on = [module.local_setup, aws_eip_association.eip_assoc, aws_instance.web]
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.web.private_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod -e bastion_host=${data.aws_instance.bastion.public_ip} -e db_host=${data.aws_db_instance.database.address} --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
+    command = "ANSIBLE_CONFIG=../config/ansible.cfg EC2_INI_PATH=../config/ec2.ini AWS_PROFILE=${var.aws_profile} ansible-playbook --limit=${aws_instance.web.private_ip} -i ../bin/ec2.py  -i ${var.claw_playbook_dir}/inventory/prod -e drupal_host=${aws_instance.web.public_ip} -e bastion_host=${data.aws_instance.bastion.public_ip} -e db_host=${data.aws_db_instance.database.address} --user ${var.ssh_user}  ${var.claw_playbook_dir}/playbook.yml  --private-key ${var.private_key_path}"
   }
 } 
 

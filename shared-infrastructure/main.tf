@@ -332,7 +332,7 @@ resource "aws_instance" "fedora" {
   subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.fedora.id}", "${aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = { 
     Name       = "shared_fedora"
     role       = "fedora"
@@ -357,7 +357,7 @@ resource "aws_instance" "triplestore" {
   subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.triplestore.id}", "${aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = { 
     Name       = "shared_triple_store"
     role       = "triplestore"
@@ -382,7 +382,7 @@ resource "aws_instance" "crayfish" {
   subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.crayfish.id}", "${aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = { 
     Name       = "shared_crayfish"
     role       = "crayfish"
@@ -406,7 +406,7 @@ resource "aws_instance" "karaf" {
   subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.karaf.id}", "${aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = { 
     Name       = "shared_karaf"
     role       = "karaf"
@@ -431,7 +431,7 @@ resource "aws_instance" "solr" {
   subnet_id     = aws_subnet.shared_resources.id 
   vpc_security_group_ids = ["${aws_security_group.solr.id}", "${aws_security_group.ssh.id}"] 
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = { 
     Name       = "shared_solr" 
     role       = "solr"
@@ -456,7 +456,7 @@ resource "aws_instance" "cantaloupe" {
   subnet_id     = aws_subnet.shared_resources.id
   vpc_security_group_ids = ["${aws_security_group.cantaloupe.id}", "${aws_security_group.ssh.id}"]
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = {
     Name       = "shared_cantaloupe"
     role       = "cantaloupe"
@@ -481,7 +481,7 @@ resource "aws_instance" "activemq" {
   subnet_id     = aws_subnet.shared_resources.id
   vpc_security_group_ids = ["${aws_security_group.activemq.id}", "${aws_security_group.ssh.id}"]
   key_name  = "${var.aws_ec2_keypair}"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   tags = {
     Name       = "shared_activemq"
     role       = "activemq"
