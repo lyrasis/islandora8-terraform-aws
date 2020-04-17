@@ -29,3 +29,7 @@ variable "ami_id" {
   description = "the amazon machin image"
   default     = "ami-04b9e92b5572fa0d1"
 }
+
+variable "account_name" {
+  description = "a name with no spaces or dashes indicating the customer's name - such as xyzuniversity" 
+}
